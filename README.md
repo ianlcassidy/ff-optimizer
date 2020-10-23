@@ -28,4 +28,5 @@ The third step involves scoring each team. I use the following 4 metrics to scor
 2. Total expected team score based on O/U and lines
 3. Total projected points
 4. Average start/sit score (converting the grades to an academic 4.0 scale; i.e., A = 4.0, B = 3.0, etc.)
+
 Using these scores, I sort the teams and create a "normalized" score based on the ordinal position of each team. I then take a weighted average of those scores and re-sort the entire list of teams.

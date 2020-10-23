@@ -1,6 +1,6 @@
 # ff-optimizer
 
-This notebook contains a quick and dirty fantasy football optimizer for weekly competitions found on DraftKings or FanDuel.
+This repo contains a quick and dirty fantasy football optimizer for weekly competitions found on DraftKings or FanDuel.
 
 ## Scraping data
 I am scraping data from 3 sites:
@@ -19,9 +19,9 @@ The second step involves filtering down all the possible combinations to a set o
 1. The total salary should equal $50k (i.e., don't leave money on the table);
 2. The offensive players' teams should not be playing the defense;
 3. No more than 2 players on the same team;
-4. QB and RB *not* on the same team;
-5. QB and WR on the same team; and
-6. TE and WR *not* on the same team.
+4. QB and RB _not_ on the same team;
+5. QB and WR _on_ the same team; and
+6. TE and WR _not_ on the same team.
 
 The third step involves scoring each team. I use the following 4 metrics to score each team:
 1. Total average historical points per game

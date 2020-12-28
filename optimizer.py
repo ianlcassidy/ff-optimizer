@@ -53,6 +53,8 @@ def create_feasible_teams(
     players: T.List[Player],
     fraction_wr_combinations: float = 1.0,
     fraction_rb_combinations: float = 1.0,
+    flex_is_wr: bool = True,
+    min_allowable_salary: int = 49500,
 ) -> T.List[Team]:
     # decompose players by position
     qb_players = [p for p in players if p.position == "QB"]
@@ -63,8 +65,12 @@ def create_feasible_teams(
 
     # get all combinations of 4 WR and 2 RB (assume flex is RB)
     # we can change this if we want a team where the flex is a RB
-    wr_combinations = list(combinations(wr_players, r=4))
-    rb_combinations = list(combinations(rb_players, r=2))
+    if flex_is_wr:
+        wr_combinations = list(combinations(wr_players, r=4))
+        rb_combinations = list(combinations(rb_players, r=2))
+    else:
+        wr_combinations = list(combinations(wr_players, r=3))
+        rb_combinations = list(combinations(rb_players, r=3))
 
     # filter combinations to only include one player per team
     wr_combinations = [
@@ -108,19 +114,21 @@ def create_feasible_teams(
                             WR1=wrs[0],
                             WR2=wrs[1],
                             WR3=wrs[2],
-                            Flex=wrs[3],  # flex can be RB or WR
+                            Flex=wrs[3]
+                            if flex_is_wr
+                            else rbs[2],  # flex can be RB or WR
                             TE=te,
                             DST=dst,
                         )
                         # filter teams that
                         #  1) match the salary constraint;
-                        #  2) offenive players not playing defense;
+                        #  2) offensive players not playing defense;
                         #  3) have no more than 2 players on the same team;
                         #  4) QB and RB are not on the same team;
                         #  5) QB and WR are on same team; and
                         #  6) WR and TE are not on the same team.
                         if (
-                            49500 <= team.total_salary <= 50000
+                            min_allowable_salary <= team.total_salary <= 50000
                             and not team.offense_playing_defense
                             and team.max_num_players_same_team <= 2
                             and not team.qb_rb_same_team
@@ -211,10 +219,16 @@ def sort_and_display_top_teams(teams: T.List[Team]):
 if __name__ == "__main__":
     week = what_week_is_it()
     df_players = get_players_df(week)
-    valid_teams, team_points_mapping = get_valid_teams_and_team_points_mapping(week)
-    print("number of teams playing on sunday at 1pm or 4pm:", len(valid_teams))
+    valid_teams, team_points_mapping = get_valid_teams_and_team_points_mapping(
+        week, valid_game_hours=[1, 4], valid_game_days=["Sunday"]
+    )
+    print("number of valid teams considered in optimization:", len(valid_teams))
     players = filter_and_convert_players(df_players, valid_teams, team_points_mapping)
     teams = create_feasible_teams(
-        players, fraction_wr_combinations=0.1, fraction_rb_combinations=0.5
+        players,
+        fraction_wr_combinations=1.0,
+        fraction_rb_combinations=1.0,
+        flex_is_wr=True,
+        min_allowable_salary=49500,
     )
     sort_and_display_top_teams(teams)

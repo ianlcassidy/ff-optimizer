@@ -37,16 +37,30 @@ def get_players_df(week: int) -> pd.DataFrame:
     return df_players
 
 
-def get_valid_teams_and_team_points_mapping(week: int) -> T.Tuple[T.Tuple[str], T.Dict]:
+def get_valid_teams_and_team_points_mapping(
+    week: int,
+    valid_game_hours: T.Optional[T.List[int]] = None,
+    valid_game_days: T.Optional[T.List[str]] = None,
+) -> T.Tuple[T.Tuple[str], T.Dict]:
     # load schedule data
     df_schedule = pd.read_csv(f"data/football_locks_data_week{week}.csv")
     df_schedule["datetime"] = pd.to_datetime(
         df_schedule["datetime"], infer_datetime_format=True
     )
     df_schedule["hour"] = df_schedule["datetime"].dt.hour
+    df_schedule["day_name"] = df_schedule["datetime"].dt.day_name()
 
-    # find valid games in the schedule (Sunday 1pm and 4pm games only)
-    df_schedule_valid = df_schedule[df_schedule["hour"].isin([1, 4])]
+    # find valid games in the schedule
+    df_schedule_valid = df_schedule.copy()
+    if valid_game_days is not None and valid_game_hours is not None:
+        df_schedule_valid = df_schedule[
+            (df_schedule["hour"].isin(valid_game_hours))
+            & (df_schedule["day_name"].isin(valid_game_days))
+        ]
+    if valid_game_days is None and valid_game_hours is not None:
+        df_schedule_valid = df_schedule[df_schedule["hour"].isin(valid_game_hours)]
+    if valid_game_days is not None and valid_game_hours is None:
+        df_schedule_valid = df_schedule[df_schedule["day_name"].isin(valid_game_days)]
     valid_teams = (
         df_schedule_valid["favorite"].unique().tolist()
         + df_schedule_valid["underdog"].unique().tolist()
